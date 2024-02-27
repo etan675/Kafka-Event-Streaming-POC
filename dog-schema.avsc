@@ -1,0 +1,23 @@
+// This file is technically unnecessary for the demo, but keeping here just for reference.
+{
+    "name": "Dog",
+    "type": "record",
+    "fields": [
+        {
+            "name": "name",
+            "type": "string"
+        },
+        {
+            "name": "breed",
+            "type": "string"
+        },
+        {
+            "name": "bornAt",
+            "type": "string"
+        },
+        {
+            "name": "age",
+            "type": "int"
+        }
+    ]
+}

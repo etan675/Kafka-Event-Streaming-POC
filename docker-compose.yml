@@ -1,0 +1,63 @@
+version: "3.8"
+
+networks:
+  dogs-net:
+    name: dogs-net
+
+services:
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:latest
+    hostname: zookeeper-1
+    container_name: zookeeper-1
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_PEER_PORT: 2888
+      ZOOKEEPER_LEADER_PORT: 3888
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - dogs-net
+
+  broker-1:
+    depends_on:
+      - zookeeper-1
+    image: confluentinc/cp-kafka:latest 
+    hostname: kafka
+    container_name: broker-1
+    ports:
+      - 29092:29092
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+    networks:
+      - dogs-net
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:latest
+    platform: linux/amd64
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - broker-1
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker-1:9092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    networks:
+      - dogs-net
+    volumes:
+      - ./dog-schema.avsc:/etc/stuff/dog-schema
+
+  
